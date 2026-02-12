@@ -35,6 +35,10 @@ on:
         description: "Optional ITN override(true/false)"
         required: false
         default: ""
+      warmup_override:
+        description: "Optional warmup override(true/false)"
+        required: false
+        default: ""
       scenario_label:
         description: "Scenario label for session bundle"
         required: true
@@ -61,6 +65,7 @@ jobs:
       MAX_WAVS: ${{ github.event.inputs.max_wavs }}
       NUM_THREADS_OVERRIDE: ${{ github.event.inputs.num_threads_override }}
       USE_ITN_OVERRIDE: ${{ github.event.inputs.use_itn_override }}
+      WARMUP_OVERRIDE: ${{ github.event.inputs.warmup_override }}
       SCENARIO_LABEL: ${{ github.event.inputs.scenario_label }}
       UI_APP: ${{ github.event.inputs.ui_app }}
 
@@ -99,6 +104,7 @@ jobs:
           MAX_WAVS="$MAX_WAVS" \
           NUM_THREADS_OVERRIDE="$NUM_THREADS_OVERRIDE" \
           USE_ITN_OVERRIDE="$USE_ITN_OVERRIDE" \
+          WARMUP_OVERRIDE="$WARMUP_OVERRIDE" \
           SCENARIO_LABEL="$SCENARIO_LABEL" \
           UI_APP="$UI_APP" \
           ./tool/ci/build_sensevoice_artifact.sh
