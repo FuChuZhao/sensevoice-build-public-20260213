@@ -19,3 +19,14 @@ Repository secret:
 
 - `SOURCE_REPO_SSH_KEY` (private key for read-only deploy key configured in SOURCE_REPO)
 
+## Workflow inputs
+
+- `source_ref`
+- `artifact_name`
+- `runner`
+- `preset_name`
+- `repeat`
+- `max_wavs`
+- `scenario_label`
+- `ui_app`
+

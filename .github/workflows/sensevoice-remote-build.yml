@@ -18,7 +18,7 @@ on:
       preset_name:
         description: "low_mem|balanced|itn_on"
         required: true
-        default: "low_mem"
+        default: "balanced"
       repeat:
         description: "Repeat count per wav"
         required: true
@@ -27,6 +27,14 @@ on:
         description: "Max wav files"
         required: true
         default: "10"
+      scenario_label:
+        description: "Scenario label for session bundle"
+        required: true
+        default: "win_local_realtime_dictation"
+      ui_app:
+        description: "Target UI app label"
+        required: true
+        default: "notepad"
 
 permissions:
   contents: read
@@ -43,6 +51,8 @@ jobs:
       PRESET_NAME: ${{ github.event.inputs.preset_name }}
       REPEAT: ${{ github.event.inputs.repeat }}
       MAX_WAVS: ${{ github.event.inputs.max_wavs }}
+      SCENARIO_LABEL: ${{ github.event.inputs.scenario_label }}
+      UI_APP: ${{ github.event.inputs.ui_app }}
 
     steps:
       - name: Validate required config
@@ -77,12 +87,17 @@ jobs:
           PRESET_NAME="$PRESET_NAME" \
           REPEAT="$REPEAT" \
           MAX_WAVS="$MAX_WAVS" \
+          SCENARIO_LABEL="$SCENARIO_LABEL" \
+          UI_APP="$UI_APP" \
           ./tool/ci/build_sensevoice_artifact.sh
+
+      - name: Show artifact tree
+        run: |
+          find source/artifact_out -maxdepth 4 -type f | sort
 
       - name: Upload artifact (short retention)
         uses: actions/upload-artifact@v4
         with:
           name: ${{ github.event.inputs.artifact_name }}
-          path: source/artifact_out/*
+          path: source/artifact_out/**
           retention-days: 1
-
