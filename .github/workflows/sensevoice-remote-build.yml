@@ -1,0 +1,88 @@
+name: SenseVoice Remote Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_ref:
+        description: "SOURCE_REPO ref/commit"
+        required: true
+        default: "main"
+      artifact_name:
+        description: "Artifact name"
+        required: true
+        default: "sensevoice-benchmark-report"
+      runner:
+        description: "Runner label"
+        required: true
+        default: "windows-latest"
+      preset_name:
+        description: "low_mem|balanced|itn_on"
+        required: true
+        default: "low_mem"
+      repeat:
+        description: "Repeat count per wav"
+        required: true
+        default: "2"
+      max_wavs:
+        description: "Max wav files"
+        required: true
+        default: "10"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ${{ github.event.inputs.runner }}
+    defaults:
+      run:
+        shell: bash
+    env:
+      SOURCE_REPO: ${{ vars.SOURCE_REPO }}
+      SOURCE_REF: ${{ github.event.inputs.source_ref }}
+      PRESET_NAME: ${{ github.event.inputs.preset_name }}
+      REPEAT: ${{ github.event.inputs.repeat }}
+      MAX_WAVS: ${{ github.event.inputs.max_wavs }}
+
+    steps:
+      - name: Validate required config
+        run: |
+          test -n "$SOURCE_REPO" || (echo "Missing repository variable SOURCE_REPO" && exit 2)
+
+      - name: Setup SSH deploy key
+        env:
+          SOURCE_REPO_SSH_KEY: ${{ secrets.SOURCE_REPO_SSH_KEY }}
+        run: |
+          test -n "$SOURCE_REPO_SSH_KEY" || (echo "Missing secret SOURCE_REPO_SSH_KEY" && exit 2)
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "$SOURCE_REPO_SSH_KEY" > ~/.ssh/source_repo_key
+          chmod 600 ~/.ssh/source_repo_key
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+
+      - name: Clone source repo by SSH
+        run: |
+          GIT_SSH_COMMAND="ssh -i ~/.ssh/source_repo_key -o IdentitiesOnly=yes" \
+            git clone --depth 1 --branch "$SOURCE_REF" "git@github.com:${SOURCE_REPO}.git" source
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Run private build entrypoint
+        run: |
+          cd source
+          ARTIFACT_DIR="$PWD/artifact_out" \
+          PRESET_NAME="$PRESET_NAME" \
+          REPEAT="$REPEAT" \
+          MAX_WAVS="$MAX_WAVS" \
+          ./tool/ci/build_sensevoice_artifact.sh
+
+      - name: Upload artifact (short retention)
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ github.event.inputs.artifact_name }}
+          path: source/artifact_out/*
+          retention-days: 1
+
