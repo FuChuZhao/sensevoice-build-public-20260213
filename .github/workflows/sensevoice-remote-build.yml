@@ -27,6 +27,14 @@ on:
         description: "Max wav files"
         required: true
         default: "10"
+      num_threads_override:
+        description: "Optional threads override"
+        required: false
+        default: ""
+      use_itn_override:
+        description: "Optional ITN override(true/false)"
+        required: false
+        default: ""
       scenario_label:
         description: "Scenario label for session bundle"
         required: true
@@ -51,6 +59,8 @@ jobs:
       PRESET_NAME: ${{ github.event.inputs.preset_name }}
       REPEAT: ${{ github.event.inputs.repeat }}
       MAX_WAVS: ${{ github.event.inputs.max_wavs }}
+      NUM_THREADS_OVERRIDE: ${{ github.event.inputs.num_threads_override }}
+      USE_ITN_OVERRIDE: ${{ github.event.inputs.use_itn_override }}
       SCENARIO_LABEL: ${{ github.event.inputs.scenario_label }}
       UI_APP: ${{ github.event.inputs.ui_app }}
 
@@ -87,6 +97,8 @@ jobs:
           PRESET_NAME="$PRESET_NAME" \
           REPEAT="$REPEAT" \
           MAX_WAVS="$MAX_WAVS" \
+          NUM_THREADS_OVERRIDE="$NUM_THREADS_OVERRIDE" \
+          USE_ITN_OVERRIDE="$USE_ITN_OVERRIDE" \
           SCENARIO_LABEL="$SCENARIO_LABEL" \
           UI_APP="$UI_APP" \
           ./tool/ci/build_sensevoice_artifact.sh
